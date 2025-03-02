@@ -46,15 +46,47 @@ const shortenUrl = asyncHandler(async(req, res) => {
 
     res.status(201).json(newUrl);
 });
-
-//@desc Get all shortened URLs for logged in user
-//@route GET/api/url/my-urls
-//@access Private
+/**
+ * @desc Get all shortened URLs for logged in user
+ * @route GET/api/url/my-urls
+ * @access Private
+ */
 
 const getUrls = asyncHandler(async(req, res) => {
     const urls = await Url.find({ user:req.user.id });
     res.json(urls);
 });
+
+/**
+ * @desc Redirect to original URL and track visits
+ * @route GET /:shortUrl
+ * @access Public
+ */
+
+const redirectUrl = asyncHandler(async(req, res) => {
+    const { shortUrl } = req.params;
+
+    const url = await Url.findOne({ shortUrl });
+
+    if(!url) {
+        res.status(404);
+        throw new Error("Short URL not found");
+    }
+
+    //Track visits
+
+    url.clicks += 1;
+    url.visits.push({
+        timestamp: new Date(),
+        userAgent: req.headers["user-agent"], //Store User-Agent
+        referrer: req.headers.referrer || "Direct Visit" //Store referrer (if available)
+    });
+    await url.save();
+
+    //Redirect to original URL
+    res.redirect(url.originalUrl);
+})
+
 
 /**
  * @desc Delete a shortened URL
@@ -81,4 +113,4 @@ const deleteUrl = asyncHandler(async(req, res) => {
     res.json({ message: "URL deleted successfully" });
 });
 
-module.exports = { shortenUrl, getUrls, deleteUrl };
+module.exports = { shortenUrl, getUrls, deleteUrl, redirectUrl };

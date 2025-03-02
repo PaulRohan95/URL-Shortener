@@ -16,6 +16,20 @@ const UrlSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        clicks: {
+            type: Number,
+            default: 0 //Default set to 0 visits initially
+        },
+        visits: [
+            {
+                timestamp: {
+                    type: Date,
+                    default: Date.now //Storing timestamp of each visit
+                },
+                userAgent: String, //Storing User-Agent
+                referrer: String //Storing referrer
+            }
+        ]
     },
     { timestamps: true }
 );

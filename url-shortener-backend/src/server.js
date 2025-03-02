@@ -7,6 +7,7 @@ const connectDB = require("../src/config/db");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const urlRoutes = require("./routes/urlRoutes");
+const { redirectUrl } = require("./controllers/urlController");
 
 
 dotenv.config();
@@ -26,6 +27,9 @@ app.use((req, res, next) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api/url", urlRoutes);
+// Handle shortened URL redirection
+app.get("/:shortUrl", redirectUrl);
+
 
 app.use((err, req, res, next) => {
     console.error("Error:", err.message);
