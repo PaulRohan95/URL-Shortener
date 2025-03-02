@@ -9,7 +9,7 @@ const asyncHandler = require("express-async-handler");
  */
 
 const shortenUrl = asyncHandler(async(req, res) => {
-    const { originalUrl, customShortUrl } = req.body;
+    const { originalUrl, customShortUrl, expiresAt } = req.body;
 
     if (!originalUrl) {
         res.status(400);
@@ -42,6 +42,7 @@ const shortenUrl = asyncHandler(async(req, res) => {
         originalUrl,
         shortUrl,
         user: req.user.id,
+        expiresAt: expiresAt ? new Date(expiresAt) : null //Store the expiration date
     });
 
     res.status(201).json(newUrl);
@@ -71,6 +72,12 @@ const redirectUrl = asyncHandler(async(req, res) => {
     if(!url) {
         res.status(404);
         throw new Error("Short URL not found");
+    }
+
+    //Check if the URL has expired
+    if (url.expiresAt && new Date() > url.expiresAt) {
+        res.status(410);
+        throw new Error("This short URL has expired");
     }
 
     //Track visits

@@ -26,13 +26,17 @@ const UrlSchema = new mongoose.Schema(
                     type: Date,
                     default: Date.now //Storing timestamp of each visit
                 },
-                userAgent: String, //Storing User-Agent
-                referrer: String //Storing referrer
+                userAgent: { type: String }, //Storing User-Agent
+                referrer: { type: String } //Storing referrer
             }
-        ]
+        ],
+        expiresAt: { type: Date, default: null },
     },
-    { timestamps: true }
+    // { timestamps: true }
 );
+
+//Automatically delete expired URLs
+// UrlSchema.index({ expiresAt: 1 }, { expiresAfterSeconds: 0 });
 
 const Url = mongoose.model("Url", UrlSchema);
 module.exports = Url;
