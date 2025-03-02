@@ -1,15 +1,12 @@
 const express = require("express");
-const { register, login } = require("../controllers/authController");
+const { register, login, logout } = require("../controllers/authController");
+const { protect } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
 
 router.post("/register", register);
-router.post("/login", (req, res, next) => {
-
-    console.log("Request received at /login");
-    console.log("Body:", req.body);
-    next();
-}, login);
+router.post("/login", login);
+router.post("/logout", protect, logout);
 
 module.exports = router;
