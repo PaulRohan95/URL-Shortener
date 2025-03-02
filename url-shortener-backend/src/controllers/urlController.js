@@ -1,6 +1,7 @@
 const Url = require("../models/Url");
 const shortid = require("shortid");
 const asyncHandler = require("express-async-handler");
+const QRCode = require("qrcode");
 
 /**
  * @desc Shorten a URL with optional custom alias
@@ -38,11 +39,25 @@ const shortenUrl = asyncHandler(async(req, res) => {
         shortUrl = shortid.generate();
     }
 
+    //Constructing full short URL
+    const shortUrlFull = `${req.protocol}://${req.get("host")}/${shortUrl}`;
+
+    //Generationg QR Code
+    let qrCode;
+    try {
+        qrCode = await QRCode.toDataURL(shortUrlFull);
+    } catch (error) {
+        console.error("Error generating QR Code: ", error);
+        res.status(500);
+        throw new Error("Failed to generate QR Code");
+    }
+
     const newUrl = await Url.create({ 
         originalUrl,
         shortUrl,
         user: req.user.id,
-        expiresAt: expiresAt ? new Date(expiresAt) : null //Store the expiration date
+        expiresAt: expiresAt ? new Date(expiresAt) : null, //Store the expiration date
+        qrCode //Storing the QR Code in the database
     });
 
     res.status(201).json(newUrl);
@@ -54,7 +69,7 @@ const shortenUrl = asyncHandler(async(req, res) => {
  */
 
 const getUrls = asyncHandler(async(req, res) => {
-    const urls = await Url.find({ user:req.user.id });
+    const urls = await Url.find({ user:req.user.id }).select("-visits"); //Excludes visit field
     res.json(urls);
 });
 

@@ -31,6 +31,7 @@ const UrlSchema = new mongoose.Schema(
             }
         ],
         expiresAt: { type: Date, default: null },
+        qrCode: { type: String } //Store QR Code as base64
     },
     // { timestamps: true }
 );
