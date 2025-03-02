@@ -69,7 +69,25 @@ const shortenUrl = asyncHandler(async(req, res) => {
  */
 
 const getUrls = asyncHandler(async(req, res) => {
-    const urls = await Url.find({ user:req.user.id }).select("-visits"); //Excludes visit field
+    let { search, minClicks, maxClicks, expired, startDate, endDate } = req.query;
+    let filter = { user: req.user.id };
+
+    if (search) filter.$or = [
+        { originalUrl: { $regex: search, $options: "i" } },
+        { shortUrl: { $regex: search, $options: "i" } }
+    ];
+    if (minClicks) filter.clicks = { ...filter.clicks, $gte: parseInt(minClicks) };
+    if (maxClicks) filter.clicks = { ...filter.clicks, $lte: parseInt (maxClicks) };
+
+    if (expired === "true") filter.expiresAt = { $lt: new Date() };
+    if (expired === "false") filter.$or = [ { expiresAt: null }, { expiresAt: { $gte: new Date() } } ];
+
+    if (startDate || endDate) {
+        filter.createdAt = {};
+        if (startDate) filter.createdAt.$gte = new Date(startDate);
+        if (endDate) filter.createdAt.$lte = new Date(endDate);
+    }
+    const urls = await Url.find(filter).select("-visits"); //Excludes visit field
     res.json(urls);
 });
 
