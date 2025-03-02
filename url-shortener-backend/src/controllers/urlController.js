@@ -3,21 +3,40 @@ const shortid = require("shortid");
 const asyncHandler = require("express-async-handler");
 
 /**
- * @desc Shorten a URL
+ * @desc Shorten a URL with optional custom alias
  * @route POST /api/url/shorten
  * @access Private (Requires JWT)
  */
 
 const shortenUrl = asyncHandler(async(req, res) => {
-    console.log("Incoming request body:", req.body); // Debugging
-    const { originalUrl } = req.body;
+    const { originalUrl, customShortUrl } = req.body;
 
     if (!originalUrl) {
         res.status(400);
         throw new Error("Original URL is required");
     }
 
-    const shortUrl = shortid.generate(); //Generate a short unique ID
+    let shortUrl;
+
+    if (customShortUrl) {
+        //Ensuring the custom short URL follows a valid format (optional validation)
+        const validCustomUrlRegex = /^[a-zA-Z0-9_-]+$/;
+        if (!validCustomUrlRegex.test(customShortUrl)) {
+            res.status(400);
+            throw new Error("Custom short URL can only contain letters, numbers, hyphens, and underscores.");
+        }
+
+        //Checking if customShortUrl is already taken
+        const existingUrl = await Url.findOne({ shortUrl: customShortUrl });
+        if(existingUrl) {
+            res.status(400);
+            throw new Error("Custom short url is already taken. Please choose another one.");
+        }
+        shortUrl = customShortUrl;
+    } else {
+        //Generating a random short URL if no custom URL is provided
+        shortUrl = shortid.generate();
+    }
 
     const newUrl = await Url.create({ 
         originalUrl,
@@ -37,4 +56,29 @@ const getUrls = asyncHandler(async(req, res) => {
     res.json(urls);
 });
 
-module.exports = { shortenUrl, getUrls };
+/**
+ * @desc Delete a shortened URL
+ * @route DELETE /api/url/:id
+ * @access Private (requires JWT)
+ */
+
+const deleteUrl = asyncHandler(async(req, res) => {
+    const url = await Url.findById(req.params.id);
+
+    if(!url) {
+        res.status(404);
+        throw new Error("URL not found");
+    }
+
+    //Ensuring the logged in user owns this URL
+    if(url.user.toString() !== req.user.id) {
+        res.status(401);
+        throw new Error("Not authorized to delete this URL");
+    }
+
+    await url.deleteOne();
+
+    res.json({ message: "URL deleted successfully" });
+});
+
+module.exports = { shortenUrl, getUrls, deleteUrl };
