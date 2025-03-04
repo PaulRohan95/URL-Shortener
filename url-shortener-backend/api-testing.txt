@@ -1,0 +1,92 @@
+LOCAL TESTING
+=======================
+
+
+Register API
+------------------
+URL Endpoint: http://localhost:5000/api/auth/register
+Request Body: 
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+
+Content-Type: application/json
+Authorization: Not required
+
+
+Login API
+------------------
+
+URL Endpoint: http://localhost:5000/api/auth/login
+Request Body: 
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+
+Content-Type: application/json
+Authorization: Not required
+
+Shorten API
+------------------
+
+URL Endpoint: http://localhost:5000/api/url/shorten
+Request Body: 
+
+For random short url creation:
+{
+    "originalUrl": "https://example.com"
+}
+
+For user customizable short URL creation:
+
+{
+    "originalUrl": "https://example.com",
+    "customShortUrl": "example"
+}
+
+
+Content-Type: application/json
+Authorization: Bearer <token received in login response>
+
+GET URL creation history API
+----------------------------------------------
+
+URL Endpoint: http://localhost:5000/api/url/my-urls
+Request Body: 
+
+Not Required
+
+Content-Type: application/json
+Authorization: Bearer <token received in login response>
+
+Logout API
+------------------
+
+URL Endpoint: http://localhost:5000/api/auth/logout
+Request Body: 
+
+Not Required
+
+
+Content-Type: application/json
+Authorization: Bearer <token received in login response>
+
+Delete API
+------------------
+
+URL Endpoint: http://localhost:5000/api/url/{userid received in response when request sent to shorten api Endpoint}
+
+Request Body: 
+
+Not Required
+
+
+Content-Type: application/json
+Authorization: Bearer <token received in login response>

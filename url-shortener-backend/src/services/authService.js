@@ -34,11 +34,17 @@ const loginUser = async(email, password) => {
         throw new Error("Invalid email or password");
     }
 
+    //Generate token
+    const token = generateToken(user._id);
+
     return {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),  
+        token,
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            token: generateToken(user._id),  
+        },
     };
 };
 

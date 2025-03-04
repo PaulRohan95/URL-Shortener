@@ -21,8 +21,16 @@ const register = asyncHandler(async(req, res) => {
 
 const login = asyncHandler(async(req, res) => {
     const { email, password } = req.body;
-    const userData = await loginUser(email, password);
-    res.json(userData);
+    const { token, user } = await loginUser(email, password);
+
+    //Set token as HttpOnly cookie
+    res.cookie("jwt", token, {
+        httpOnly: true, //Prevents Javascript access (XSS protection)
+        secure: process.env.NODE_ENV === "production", //Works only in HTTPS in production
+        sameSite: "Strict", //Prevents CSRF attacks
+        maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
+    });
+    res.json({ message: "Login successful", user });
 });
 
 /** 
